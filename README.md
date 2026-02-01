@@ -37,6 +37,9 @@ HMM helps you manage a monorepo with multiple internal packages and a compiler m
 
 ## Commands
 
+- `hmm lint`  
+  Runs `hlint` on all Haskell source files in the monorepo. If any file fails linting, the command exits with code 1. This is useful for CI pipelines and enforcing code quality.
+
 - `hmm use <ghc>`  
   Selects a build from `hmm.yaml` and generates the active build config:
   - rewrites `stack.yaml` for that GHC/resolver
