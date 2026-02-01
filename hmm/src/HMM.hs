@@ -16,7 +16,7 @@ where
 
 import Data.Version (showVersion)
 import HMM.Config.Config (Config (..), bumpVersion, updateDeps)
-import HMM.Config.ConfigT (HCEnv (..), run)
+import HMM.Config.ConfigT (HCEnv (..), mapConfig, run)
 import HMM.Config.Tag (Tag (Latest))
 import HMM.Core.Bump (Bump (..))
 import HMM.Core.Env (Env (..), defaultConfig)
@@ -42,10 +42,10 @@ currentVersion :: String
 currentVersion = showVersion CLI.version
 
 exec :: Command -> Env -> IO ()
-exec Publish {groupName} = run (Just "publish") Nothing (publishPackages groupName)
-exec Version {bump = Just bump} = run (Just "version") (Just (pure . bumpVersion bump)) syncPackages
-exec Use {tag} = run (Just "use") Nothing $ syncStackYaml tag
-exec UpdateDeps = run (Just "update deps") (Just updateDeps) syncPackages
-exec Sync = run (Just "sync") Nothing (syncHie *> syncPackages)
-exec Version {bump = Nothing} = run Nothing Nothing (version <$> asks config)
-exec Format {check} = run (Just "format") Nothing (format check)
+exec Publish {groupName} = run (Just "publish") (publishPackages groupName)
+exec Version {bump = Just bump} = run (Just "version") (mapConfig (pure . bumpVersion bump) syncPackages)
+exec Use {tag} = run (Just "use") $ syncStackYaml tag
+exec UpdateDeps = run (Just "update deps") (mapConfig updateDeps syncPackages)
+exec Sync = run (Just "sync") (syncHie *> syncPackages)
+exec Version {bump = Nothing} = run Nothing (version <$> asks config)
+exec Format {check} = run (Just "format") (format check)

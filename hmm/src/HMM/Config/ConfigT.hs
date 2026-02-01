@@ -12,6 +12,7 @@ module HMM.Config.ConfigT
     HCEnv (..),
     run,
     VersionMap,
+    mapConfig,
   )
 where
 
@@ -63,6 +64,12 @@ newtype ConfigT (a :: Type) = ConfigT {_runConfigT :: ReaderT HCEnv IO a}
       MonadIO,
       MonadFail
     )
+
+mapConfig :: (Config -> ConfigT Config) -> ConfigT b -> ConfigT b
+mapConfig f' m = do
+  cfg <- asks config
+  updatedCfg <- f' cfg
+  local (\env' -> env' {config = updatedCfg}) (save >> m)
 
 runConfigT :: ConfigT a -> Env -> Config -> VersionsMap -> IO (Either String a)
 runConfigT (ConfigT (ReaderT f)) env config versionsMap = do
@@ -125,8 +132,8 @@ runConfig fast m env cfg
       deps <- prefetchVersionsMap cfg
       runConfigT (asks config >>= check >> save >> m) env cfg deps
 
-run :: (ParseResponse a) => Maybe String -> Maybe (Config -> ConfigT Config) -> ConfigT a -> Env -> IO ()
-run label f m env@Env {..} = do
+run :: (ParseResponse a) => Maybe String -> ConfigT a -> Env -> IO ()
+run label m env@Env {..} = do
   cfg <- readYaml hmm
   changed <- isConfigChanged cfg hmm
   result <- runConfig (not changed) (m' >>= logResponse) env cfg
@@ -134,13 +141,8 @@ run label f m env@Env {..} = do
     Left x -> alert ("ERROR: " <> x) >> liftIO exitFailure
     (Right x) -> pure x
   where
-    m' = maybe id task label (updateConfig f)
+    m' = maybe id task label m
     logResponse = putLine . fromMaybe (chalk Green "\nOk") . parseResponse
-    updateConfig Nothing = m
-    updateConfig (Just f') = do
-      cfg <- asks config
-      updatedCfg <- f' cfg
-      local (\env' -> env' {config = updatedCfg}) (save >> m)
 
 class ParseResponse a where
   parseResponse :: a -> Maybe String
