@@ -125,11 +125,11 @@ runConfig fast m env cfg
       deps <- prefetchVersionsMap cfg
       runConfigT (asks config >>= check >> save >> m) env cfg deps
 
-run :: (ParseResponse a) => Bool -> Maybe String -> Maybe (Config -> ConfigT Config) -> ConfigT a -> Env -> IO ()
-run fast label f m env@Env {..} = do
+run :: (ParseResponse a) => Maybe String -> Maybe (Config -> ConfigT Config) -> ConfigT a -> Env -> IO ()
+run label f m env@Env {..} = do
   cfg <- readYaml hmm
   changed <- isConfigChanged cfg hmm
-  result <- runConfig (fast || not changed) updatedM env cfg
+  result <- runConfig (not changed) updatedM env cfg
   case result of
     Left x -> alert ("ERROR: " <> x) >> liftIO exitFailure
     (Right x) -> pure x
