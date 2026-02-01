@@ -86,7 +86,7 @@ curl -fsSL https://raw.githubusercontent.com/nalchevanidze/hmm/main/scripts/inst
 Install a specific version:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/nalchevanidze/hmm/main/scripts/install.sh | bash -s -- v0.5.0
+curl -fsSL https://raw.githubusercontent.com/nalchevanidze/hmm/main/scripts/install.sh | bash -s -- v1.0.0
 ```
 
 The installer detects your platform (Linux, macOS, Windows) and architecture (x64, arm64).
