@@ -29,9 +29,9 @@ _Focus: Making HMM the central task runner and playing nice with non-Stack tools
 
 ### 🔭 Quality Assurance & Insights
 
-_Focus: Visualization, linting, and health checks._
+Focus: Visualization, linting, and health checks._
 
-- [ ] **Linting (`hmm lint`):** Integrate `hlint` execution across the monorepo with central config.
+- [x] **Linting (`hmm lint`):** Runs `hlint` across all Haskell source files in the monorepo. Fails with exit code 1 if any file fails linting, suitable for CI integration.
 - [ ] **Dependency Graph (`hmm graph`):** Visualize internal package dependencies (Dot/Mermaid) to detect cycles.
 - [ ] **Health Checks (`hmm doctor`):** Audit `hmm.yaml` for unused deps, missing paths, or configuration drift.
 
