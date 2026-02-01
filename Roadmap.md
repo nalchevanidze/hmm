@@ -8,7 +8,7 @@ This document outlines the development roadmap for **HMM (Haskell Monorepo Manag
 
 ## 📅 Milestones
 
-### ✅ v0.5: The Foundation (Current Status)
+### ✅ v1.1.1: The Foundation (Current Status)
 *Focus: Core build management and dependency synchronization.*
 - [x] **Single Source of Truth:** `hmm.yaml` configuration.
 - [x] **Build Matrix:** Switch between GHC versions (`hmm use`).
@@ -68,8 +68,6 @@ This document outlines the development roadmap for **HMM (Haskell Monorepo Manag
 1. Creates directory based on group path.
 2. Generates `package.yaml` with project-wide bounds.
 3. Registers package in `hmm.yaml`.
-
-
 
 ### 4. Smart CI (`hmm affected`)
 
