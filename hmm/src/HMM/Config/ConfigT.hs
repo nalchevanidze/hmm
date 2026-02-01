@@ -129,15 +129,13 @@ run :: (ParseResponse a) => Maybe String -> Maybe (Config -> ConfigT Config) -> 
 run label f m env@Env {..} = do
   cfg <- readYaml hmm
   changed <- isConfigChanged cfg hmm
-  result <- runConfig (not changed) updatedM env cfg
+  result <- runConfig (not changed) (m' >>= logResponse) env cfg
   case result of
     Left x -> alert ("ERROR: " <> x) >> liftIO exitFailure
     (Right x) -> pure x
   where
-    updatedM = withLabel label
-    withLabel (Just name) = task name (updateConfig f) >> putLine (chalk Green "\nOk")
-    withLabel Nothing = updateConfig f >>= (`for_` putLine) . parseResponse
-    -- Helper to update config if function is provided
+    m' = maybe id task label (updateConfig f)
+    logResponse = putLine . fromMaybe (chalk Green "\nOk") . parseResponse
     updateConfig Nothing = m
     updateConfig (Just f') = do
       cfg <- asks config
