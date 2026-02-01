@@ -42,12 +42,10 @@ currentVersion :: String
 currentVersion = showVersion CLI.version
 
 exec :: Command -> Env -> IO ()
--- commands that must do build validation and require https requests
 exec Publish {groupName} = run (Just "publish") Nothing (publishPackages groupName)
+exec Version {bump = Just bump} = run (Just "version") (Just (pure . bumpVersion bump)) syncPackages
 exec Use {tag} = run (Just "use") Nothing $ syncStackYaml tag
 exec UpdateDeps = run (Just "update deps") (Just updateDeps) syncPackages
 exec Sync = run (Just "sync") Nothing (syncHie *> syncPackages)
-exec Version {bump = Just bump} = run (Just "version") (Just (pure . bumpVersion bump)) syncPackages
--- commands that can run in fast mode without build validation
 exec Version {bump = Nothing} = run Nothing Nothing (version <$> asks config)
 exec Format {check} = run (Just "format") Nothing (format check)
