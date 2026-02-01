@@ -43,9 +43,9 @@ currentVersion = showVersion CLI.version
 
 exec :: Command -> Env -> IO ()
 exec Publish {groupName} = run (Just "publish") (publishPackages groupName)
-exec Version {bump = Just bump} = run (Just "version") (mapConfig (pure . bumpVersion bump) syncPackages)
+exec Version {bump = Just bump} = run (Just "version") ((pure . bumpVersion bump) `mapConfig` syncPackages)
 exec Use {tag} = run (Just "use") $ syncStackYaml tag
-exec UpdateDeps = run (Just "update deps") (mapConfig updateDeps syncPackages)
+exec UpdateDeps = run (Just "update deps") (updateDeps `mapConfig` syncPackages)
 exec Sync = run (Just "sync") (syncHie *> syncPackages)
 exec Version {bump = Nothing} = run Nothing (version <$> asks config)
 exec Format {check} = run (Just "format") (format check)
