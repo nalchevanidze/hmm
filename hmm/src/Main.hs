@@ -78,6 +78,7 @@ instance CLIType Command where
         ("version", "show project info, or bump version with: major|minor|patch", Version <$> optional cliType),
         ("update-deps", "check and update dependency version bounds", pure UpdateDeps),
         ("format", "format Haskell source files using Ormolu (use --check to validate only)", Format <$> switch (long "check" <> short 'c' <> help "check formatting without making changes")),
+        ("lint", "run hlint across the monorepo", pure Lint),
         ("publish", "publish packages to Hackage", Publish <$> optional (argument (pack <$> str) (metavar "NAME" <> help "name of the package group to publish")))
       ]
 

@@ -22,6 +22,8 @@ import HMM.Core.Bump (Bump (..))
 import HMM.Core.Env (Env (..), defaultConfig)
 import HMM.Format (format)
 import HMM.Hie (syncHie)
+-- Lint moved to HMM.Lint
+import HMM.Lint (lintMonorepo)
 import HMM.Stack.Package (publishPackages, syncPackages)
 import HMM.Stack.StackYaml (syncStackYaml)
 import HMM.Utils.Class (Parse (..))
@@ -35,6 +37,7 @@ data Command
   | Version {bump :: Maybe Bump}
   | UpdateDeps
   | Format {check :: Bool}
+  | Lint
   | Publish {groupName :: Maybe Name}
   deriving (Show)
 
@@ -49,3 +52,4 @@ exec UpdateDeps = run (Just "update deps") (updateDeps `mapConfig` syncPackages)
 exec Sync = run (Just "sync") (syncHie *> syncPackages)
 exec Version {bump = Nothing} = run Nothing (version <$> asks config)
 exec Format {check} = run (Just "format") (format check)
+exec Lint = lintMonorepo

@@ -40,6 +40,7 @@ executable hmm
       HMM.Core.Version
       HMM.Format
       HMM.Hie
+      HMM.Lint
       HMM.Stack.Cabal
       HMM.Stack.Lib
       HMM.Stack.Package
