@@ -66,6 +66,16 @@ newtype ConfigT (a :: Type) = ConfigT {_runConfigT :: ReaderT HCEnv IO a}
       MonadFail
     )
 
+getFileHash :: FilePath -> IO (Maybe Text)
+getFileHash filePath = do
+  content <- T.decodeUtf8 <$> readFileBS filePath
+  case T.lines content of
+    (firstLine : _) ->
+      case T.stripPrefix "# hash: " firstLine of
+        Just hash -> pure (Just hash)
+        Nothing -> pure Nothing
+    [] -> pure Nothing
+
 updateConfig :: (Config -> ConfigT Config) -> ConfigT b -> ConfigT b
 updateConfig f m = do
   cfg <- asks config
@@ -108,23 +118,9 @@ computeConfigHash cfg =
       hashBytes = SHA256.hash hashInput
    in T.decodeUtf8 (Base16.encode hashBytes)
 
-extractHashFromFile :: FilePath -> IO (Maybe Text)
-extractHashFromFile filePath = do
-  content <- T.decodeUtf8 <$> readFileBS filePath
-  case T.lines content of
-    (firstLine : _) ->
-      case T.stripPrefix "# hash: " firstLine of
-        Just hash -> pure (Just hash)
-        Nothing -> pure Nothing
-    [] -> pure Nothing
-
-isConfigChanged :: Config -> FilePath -> IO Bool
-isConfigChanged cfg filePath = do
-  storedHash <- extractHashFromFile filePath
-  let currentHash = computeConfigHash cfg
-  case storedHash of
-    Nothing -> pure True -- No hash means we should do full check
-    Just hash -> pure (hash /= currentHash)
+hasHashChanged :: Config -> Maybe Text -> Bool
+hasHashChanged _ Nothing = True
+hasHashChanged cfg (Just storedHash) = storedHash /= computeConfigHash cfg
 
 runConfig :: Bool -> ConfigT a -> Env -> Config -> IO (Either String a)
 runConfig fast m env cfg
@@ -136,8 +132,8 @@ runConfig fast m env cfg
 run :: (ParseResponse a) => Maybe String -> ConfigT a -> Env -> IO ()
 run label m env@Env {..} = do
   cfg <- readYaml hmm
-  changed <- isConfigChanged cfg hmm
-  result <- runConfig (not changed) (m' >>= logResponse) env cfg
+  storedHash <- getFileHash hmm
+  result <- runConfig (not (hasHashChanged cfg storedHash)) (m' >>= logResponse) env cfg
   case result of
     Left x -> alert ("ERROR: " <> x) >> liftIO exitFailure
     (Right x) -> pure x
@@ -158,7 +154,7 @@ instance ParseResponse () where
   parseResponse _ = Nothing
 
 save :: ConfigT ()
-save = task "save" $ task "hmm.yaml" $ do 
+save = task "save" $ task "hmm.yaml" $ do
   cfg <- asks config
   ctx <- asks id
   let filePath = hmm $ env ctx
