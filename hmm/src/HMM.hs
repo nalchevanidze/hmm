@@ -16,7 +16,7 @@ where
 
 import Data.Version (showVersion)
 import HMM.Config.Config (Config (..), bumpVersion, updateDeps, updateTag)
-import HMM.Config.ConfigT (HCEnv (..), updateConfig, run)
+import HMM.Config.ConfigT (HCEnv (..), run, updateConfig)
 import HMM.Config.Tag (Tag (Latest))
 import HMM.Core.Bump (Bump (..))
 import HMM.Core.Env (Env (..), defaultConfig)
@@ -46,12 +46,12 @@ currentVersion :: String
 currentVersion = showVersion CLI.version
 
 exec :: Command -> Env -> IO ()
-exec Publish {groupName} = run (Just "publish") (publishPackages groupName)
+exec Publish {groupName} = run Nothing (publishPackages groupName)
 exec Version {bump = Just bump} = run (Just "version") ((pure . bumpVersion bump) `updateConfig` syncPackages)
-exec Use {tag} = run (Just "use") $ ((pure . updateTag tag) `updateConfig` syncStackYaml)
+exec Use {tag} = run (Just "use") ((pure . updateTag tag) `updateConfig` syncStackYaml)
 exec UpdateDeps = run (Just "update deps") (updateDeps `updateConfig` syncPackages)
 exec Sync = run (Just "sync") (syncHie *> syncPackages *> syncStackYaml)
 exec Version {bump = Nothing} = run Nothing (version <$> asks config)
-exec Format {check} = run (Just "format") (format check)
+exec Format {check} = run Nothing (format check)
 exec Lint = lintMonorepo
 exec Run {scriptName, scriptArgs} = run Nothing (runScript scriptName scriptArgs)

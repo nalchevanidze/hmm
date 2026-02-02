@@ -94,14 +94,14 @@ syncPackages :: (ReadConf m '[Version, BoundsByName]) => m ()
 syncPackages = forPackages checkPackage
 
 publishPackages :: (ReadConf m '[Version, BoundsByName, [PkgGroup]]) => Maybe Name -> m ()
-publishPackages (Just x) = task ("group(" <> toString x <> ")") $ do
+publishPackages (Just x) = task ("Publish Group(" <> toString x <> ")") $ do
   prePublish
   groups <- readList
   g <- case filter ((== x) . pkgGroupName) groups of
     [] -> fail $ "Package group \"" <> toString x <> "\" not found! available groups: " <> intercalate ", " (map (show . pkgGroupName) groups)
     (g : _) -> pure g
   publishGroup g
-publishPackages Nothing = prePublish >> task "groups" (readList >>= traverse_ publishGroup)
+publishPackages Nothing = prePublish >> task "Publish Groups" (readList >>= traverse_ publishGroup)
 
 publishGroup :: (ReadConf m '[Version, BoundsByName]) => PkgGroup -> m ()
 publishGroup g = task (toString $ pkgGroupName g) $ traverse_ (\p -> task (toString p) (publishPackage p)) (pkgDirs g)

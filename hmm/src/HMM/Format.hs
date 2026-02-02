@@ -24,7 +24,7 @@ import Relude hiding (exitWith, fix)
 import System.Exit (ExitCode (..))
 
 format :: (ReadConf m ()) => Bool -> m ()
-format check = task "ormolu" $ do
+format check = task "format(ormolu)" $ do
   files <- sort . concat <$> (readList >>= traverse explore)
   success <- all isSuccess <$> mapM (formatFile check) files
   unless success (throwError "Error")
