@@ -59,11 +59,11 @@ instance ToJSON Config where
 instance (ReadConf m '[VersionsMap]) => Check m Config where
   check Config {..} = traverse_ check (toList builds)
 
-bumpVersion :: Bump -> Config -> Config
-bumpVersion bump Config {..} =
+bumpVersion :: (HIO m) => Bump -> Config -> m Config
+bumpVersion bump Config {..} = task "Bump version" $ do
   let version' = nextVersion bump version
       bounds' = versionBounds version'
-   in Config {version = version', bounds = bounds', ..}
+   in pure Config {version = version', bounds = bounds', ..}
 
 updateDeps :: (HIO m, ReadConf m '[VersionsMap]) => Config -> m Config
 updateDeps Config {..} = task "update deps" $ do
