@@ -13,25 +13,22 @@ module HMM.Config.Config
     getRule,
     bumpVersion,
     updateDeps,
+    updateTag,
   )
 where
 
-import Data.Aeson
-  ( FromJSON (..),
-    Options (..),
-    ToJSON (toJSON),
-    genericToJSON,
-  )
+import Data.Aeson (FromJSON (..), Options (..), ToJSON (toJSON), genericParseJSON, genericToJSON)
 import Data.Aeson.Types (defaultOptions)
 import HMM.Config.Build (Builds)
 import HMM.Config.PkgGroup (PkgGroup, PkgRegistry, isMember)
+import HMM.Config.Tag (Tag)
 import HMM.Core.Bounds (Bounds, updateDepBounds, versionBounds)
 import HMM.Core.Bump (Bump)
 import HMM.Core.Dependencies (Dependencies, getBounds, traverseDeps)
 import HMM.Core.HkgRef (VersionsMap)
 import HMM.Core.Version (Version, nextVersion)
 import HMM.Utils.Class (Check (..), HIO)
-import HMM.Utils.Core (DependencyName)
+import HMM.Utils.Core (DependencyName, Name, aesonYAMLOptions)
 import HMM.Utils.FromConf (ReadConf)
 import Relude
 
@@ -40,11 +37,12 @@ data Config = Config
     bounds :: Bounds,
     groups :: [PkgGroup],
     builds :: Builds,
-    dependencies :: Dependencies
+    dependencies :: Dependencies,
+    scripts :: Map Name String,
+    currentBuild :: Maybe Tag
   }
   deriving
     ( Generic,
-      FromJSON,
       Show
     )
 
@@ -53,8 +51,11 @@ getRule ps name Config {..}
   | isMember name ps = pure bounds
   | otherwise = getBounds name dependencies
 
+instance FromJSON Config where
+  parseJSON = genericParseJSON aesonYAMLOptions
+
 instance ToJSON Config where
-  toJSON = genericToJSON defaultOptions {omitNothingFields = True}
+  toJSON = genericToJSON aesonYAMLOptions
 
 instance (ReadConf m '[VersionsMap]) => Check m Config where
   check Config {..} = traverse_ check (toList builds)
@@ -69,3 +70,6 @@ updateDeps :: (HIO m, ReadConf m '[VersionsMap]) => Config -> m Config
 updateDeps Config {..} = do
   dependencies' <- traverseDeps updateDepBounds dependencies
   pure Config {dependencies = dependencies', ..}
+
+updateTag :: Maybe Tag -> Config -> Config
+updateTag tag config = config {currentBuild = tag <|> currentBuild config}

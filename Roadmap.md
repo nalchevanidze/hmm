@@ -18,48 +18,17 @@ _Focus: Core build management and dependency synchronization._
 - [x] **Dependency Bounds:** Enforce global version bounds on local packages.
 - [x] **Release Automation:** `hmm version` (bump) and `hmm update-deps`.
 - [x] **Formatting:** Ormolu integration (`hmm format`).
-
-### 🚧 Interoperability & Developer Experience
-
-_Focus: Making HMM the central task runner and playing nice with non-Stack tools._
-
-- [ ] **Task Runner (`hmm run`):** A unified script runner (like `npm run`) for common project tasks (repl, db-reset, etc.).
+- [x] **Task Runner (`hmm run`):** A unified script runner (like `npm run`) for common project tasks (repl, db-reset, etc.).
+- [x] **Linting (`hmm lint`):** Runs `hlint` across all Haskell source files in the monorepo. Fails with exit code 1 if any file fails linting, suitable for CI integration.
 - [ ] **Cabal Interop:** Generate `cabal.project` alongside `stack.yaml` to support `cabal build` and HLS native workflows.
 - [ ] **Scaffolding (`hmm new`):** CLI command to generate new packages with correct directory structure and bounds.
-
-### 🔭 Quality Assurance & Insights
-
-Focus: Visualization, linting, and health checks._
-
-- [x] **Linting (`hmm lint`):** Runs `hlint` across all Haskell source files in the monorepo. Fails with exit code 1 if any file fails linting, suitable for CI integration.
 - [ ] **Dependency Graph (`hmm graph`):** Visualize internal package dependencies (Dot/Mermaid) to detect cycles.
 - [ ] **Health Checks (`hmm doctor`):** Audit `hmm.yaml` for unused deps, missing paths, or configuration drift.
-
-### 🚀 Enterprise Scale
-
-_Focus: Optimization for large teams and CI pipelines._
-
+- [ ] **Advanced Publishing:** improved `hmm publish` with dry-runs and candidate checks.
 - [ ] **Smart CI (`hmm affected`):** Analyze git history to run tests _only_ on changed packages and their dependents.
 - [ ] **Changelog Automation (`hmm changelog`):** Manage changelog fragments and compile them on release.
-- [ ] **Advanced Publishing:** improved `hmm publish` with dry-runs and candidate checks.
 
----
-
-## 🛠 Feature Specifications
-
-### 1. Task Runner (`hmm run`)
-
-**Goal:** Replace scattered Makefiles and shell scripts with centralized scripts in `hmm.yaml`.
-
-- **Config:**
-
-```yaml
-scripts:
-  repl: "stack repl --no-load"
-  db:reset: "docker-compose restart db"
-```
-
-**Usage:** `hmm run db:reset`
+## Feature Details
 
 ### 2. Interoperability (`cabal.project`)
 
@@ -85,9 +54,3 @@ scripts:
 - **Usage:** `hmm affected --base origin/main`
 - **Output:** List of package names that need testing.
 - **Logic:** `(Changed Files -> Packages) + (Downstream Dependents) = Target List`
-
-### 5. Config Preservation
-
-**Goal:** Ensure `hmm` commands do not strip comments from `hmm.yaml`.
-
-- **Strategy:** Move from pure serialization to surgical text replacement for commands like `version` and `update-deps`.

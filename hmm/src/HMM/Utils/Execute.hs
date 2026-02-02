@@ -9,10 +9,12 @@ module HMM.Utils.Execute
     Warning (..),
     printWarnings,
     parseWarnings,
+    runShell,
   )
 where
 
 import Data.Text (pack, unpack)
+import qualified Data.Text as T
 import GHC.IO.Exception (ExitCode (..))
 import HMM.Utils.Class (HIO, Log (..))
 import HMM.Utils.Log
@@ -26,7 +28,7 @@ import HMM.Utils.Source
     startsLike,
   )
 import Relude
-import System.Process (readProcessWithExitCode)
+import System.Process (CreateProcess (..), StdStream (..), createProcess, proc, readProcessWithExitCode, waitForProcess)
 
 type Result = Either String
 
@@ -65,3 +67,15 @@ groupTopics = regroup . break emptyLine
     regroup (h, t)
       | null t = [h]
       | otherwise = h : groupTopics (dropWhile emptyLine t)
+
+-- | Run a shell script command with arguments, inheriting stdio, and fail on nonzero exit code.
+runShell :: (MonadIO m, MonadFail m) => Text -> [Text] -> m ()
+runShell cmdText scriptArgs = do
+  let fullCmd = if null scriptArgs then cmdText else T.unwords (cmdText : scriptArgs)
+  liftIO $ putStrLn ("run: " <> T.unpack fullCmd)
+  exitCode <- liftIO $ do
+    (_, _, _, ph) <- createProcess (proc "/bin/sh" ["-c", T.unpack fullCmd]) {std_out = Inherit, std_err = Inherit, std_in = Inherit}
+    waitForProcess ph
+  case exitCode of
+    ExitSuccess -> pure ()
+    ExitFailure code -> fail $ "Script failed with exit code: " <> show code

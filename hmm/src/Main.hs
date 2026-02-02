@@ -73,13 +73,19 @@ instance CLIType Bump where
 instance CLIType Command where
   cliType =
     commands
-      [ ("use", "select a build from hmm.yaml and generate the active build config", Use <$> optional cliType),
-        ("sync", "sync package metadata to match hmm.yaml", pure Sync),
-        ("version", "show project info, or bump version with: major|minor|patch", Version <$> optional cliType),
+      [ ("use", "choose a stack resolver by tag from hmm.yaml and update stack.yaml accordingly", Use <$> optional cliType),
+        ("sync", "synchronize package.yaml, hie.yaml, and stack.yaml", pure Sync),
+        ("version", "show project version, or bump version with: major|minor|patch", Version <$> optional cliType),
         ("update-deps", "check and update dependency version bounds", pure UpdateDeps),
         ("format", "format Haskell source files using Ormolu (use --check to validate only)", Format <$> switch (long "check" <> short 'c' <> help "check formatting without making changes")),
         ("lint", "run hlint across the monorepo", pure Lint),
-        ("publish", "publish packages to Hackage", Publish <$> optional (argument (pack <$> str) (metavar "NAME" <> help "name of the package group to publish")))
+        ("publish", "publish packages to Hackage by group", Publish <$> optional (argument (pack <$> str) (metavar "NAME" <> help "name of the package group to publish"))),
+        ( "run",
+          "run a script from hmm.yaml",
+          Run
+            <$> argument (pack <$> str) (metavar "SCRIPT" <> help "script name to run")
+            <*> many (argument (pack <$> str) (metavar "ARGS" <> help "arguments to pass to the script"))
+        )
       ]
 
 data Options = Options

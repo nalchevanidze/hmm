@@ -3,4 +3,4 @@ cradle:
     stackYaml: ./stack.yaml
     components:
     - path: ./hmm/src
-      component: hmm:exe:hmm
+      component: haskell-monorepo-manager:exe:hmm

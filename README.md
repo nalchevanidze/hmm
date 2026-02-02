@@ -18,8 +18,10 @@ HMM helps you manage a monorepo with multiple internal packages and a compiler m
 
 ---
 
+
 ## Features
 
+- **Script runner:** Run project scripts defined in `hmm.yaml` with `hmm run <script> [-- <args>]`, similar to `npm run`. Supports argument passing and real-time output.
 - **Monorepo coordination:** define groups of packages and where they live in the repo
 - **Multi-build management:** configure a build matrix (GHC + resolver, allow-newer, extra deps)
 - **Dependency bounds policy:** keep dependency constraints consistent across packages
@@ -35,7 +37,26 @@ HMM helps you manage a monorepo with multiple internal packages and a compiler m
 
 
 
+
 ## Commands
+
+- `hmm run <script> [-- <args>]`
+  Runs a script defined in the `scripts` section of `hmm.yaml`. Extra arguments after `--` are passed to the script. Output is streamed in real time.
+
+  Example `hmm.yaml`:
+  ```yaml
+  scripts:
+    build: "stack build"
+    repl: "stack repl --no-load"
+    db:reset: "docker-compose restart db"
+  ```
+
+  Example usage:
+  ```bash
+  hmm run build
+  hmm run build -- --ghc-options -ddump-splices
+  hmm run db:reset
+  ```
 
 - `hmm lint`  
   Runs `hlint` on all Haskell source files in the monorepo. If any file fails linting, the command exits with code 1. This is useful for CI pipelines and enforcing code quality.

@@ -19,7 +19,7 @@ import HMM.Core.Env (Env (..))
 import HMM.Core.PkgDir (PkgDirs)
 import HMM.Utils.Class (Format (..))
 import HMM.Utils.Core (Name, ResolverName, aesonYAMLOptions)
-import HMM.Utils.FromConf (ReadConf, readEnv)
+import HMM.Utils.FromConf (ReadConf, ReadFromConf (readFromConf), readEnv)
 import HMM.Utils.Log (task)
 import HMM.Utils.Yaml (rewrite_)
 import Relude
@@ -42,9 +42,12 @@ instance FromJSON Stack where
 instance ToJSON Stack where
   toJSON = genericToJSON aesonYAMLOptions
 
-syncStackYaml :: (ReadConf m '[Builds, Env]) => Maybe Tag -> m ()
-syncStackYaml tag = do
-  version <- resolveVersion (fromMaybe Latest tag)
+
+
+syncStackYaml :: (ReadConf m '[Builds, Env, Tag]) => m ()
+syncStackYaml = do
+  tag <- readFromConf ()
+  version <- resolveVersion tag
   task ("ghc-" <> show version <> "")
     $ task "stack.yaml"
     $ do

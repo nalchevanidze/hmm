@@ -4,6 +4,7 @@
 
 module HMM.Format (format) where
 
+import qualified Data.Text.Encoding as TE
 import HMM.Core.PkgDir (explore)
 import HMM.Utils.Class (HIO)
 import HMM.Utils.Core (throwError)
@@ -30,7 +31,7 @@ format check = task "ormolu" $ do
 
 formatFile :: (HIO m) => Bool -> FilePath -> m ExitCode
 formatFile check path = liftIO $ withPrettyOrmoluExceptions Always $ do
-  original <- readFileText path
+  original <- TE.decodeUtf8 <$> readFileBS path
   formatted <- formatter path original
   handle original formatted
   where

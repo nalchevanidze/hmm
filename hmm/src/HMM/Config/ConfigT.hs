@@ -26,6 +26,7 @@ import qualified Data.Text.Encoding as T
 import HMM.Config.Build (Builds, allDeps)
 import HMM.Config.Config (Config (..), getRule)
 import HMM.Config.PkgGroup (PkgGroup, PkgRegistry, pkgDirs, pkgRegistry)
+import HMM.Config.Tag (Tag (Latest))
 import HMM.Core.Bounds (Bounds)
 import HMM.Core.Env (Env (..))
 import HMM.Core.HkgRef (VersionMap, Versions, VersionsMap)
@@ -180,6 +181,9 @@ instance ReadFromConf ConfigT Env where
 
 instance ReadFromConf ConfigT Version where
   readFromConf = const $ asks (version . config)
+
+instance ReadFromConf ConfigT Tag where
+  readFromConf = const $ asks (fromMaybe Latest . currentBuild . config)
 
 instance ReadFromConf ConfigT (ByKey DependencyName Bounds) where
   readFromConf name = do
