@@ -1,5 +1,4 @@
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -17,8 +16,7 @@ module HMM.Config.Config
   )
 where
 
-import Data.Aeson (FromJSON (..), Options (..), ToJSON (toJSON), genericParseJSON, genericToJSON)
-import Data.Aeson.Types (defaultOptions)
+import Data.Aeson (FromJSON (..), ToJSON (toJSON), genericParseJSON, genericToJSON)
 import HMM.Config.Build (Builds)
 import HMM.Config.PkgGroup (PkgGroup, PkgRegistry, isMember)
 import HMM.Config.Tag (Tag)

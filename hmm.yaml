@@ -1,4 +1,4 @@
-# hash: f00c894b30b90ea77ad1ff365d6a813de8418643d96676080fa8ad0e13f0418b
+# hash: ab681d0b6c08652f151ef9a6a55f9579e12f1bf0f44c3819219699ce56b528ed
 version: 1.1.1
 bounds: '>= 1.1.0 && < 1.2.0'
 groups:
