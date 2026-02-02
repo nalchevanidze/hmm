@@ -131,14 +131,12 @@ run :: (ParseResponse a) => ConfigT a -> Env -> IO ()
 run m env@Env {..} = do
   cfg <- readYaml hmm
   storedHash <- getFileHash hmm
-  result <- runConfigT (withCheck (not (hasHashChanged cfg storedHash)) >>= logResponse) env cfg
+  let m' = if not (hasHashChanged cfg storedHash) then m else prefetchVersions (asks config >>= check >> save >> m)
+  result <- runConfigT (m' >>= logResponse) env cfg
   case result of
     Left x -> alert ("ERROR: " <> x) >> liftIO exitFailure
     (Right x) -> pure x
   where
-    withCheck fast
-      | fast = m
-      | otherwise = prefetchVersions (asks config >>= check >> save >> m)
     logResponse = putLine . fromMaybe (chalk Green "\nOk") . parseResponse
 
 class ParseResponse a where
