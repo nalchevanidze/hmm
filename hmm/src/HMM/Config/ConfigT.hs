@@ -43,6 +43,7 @@ import HMM.Utils.FromConf (ByKey (..), ReadFromConf (..), readList)
 import HMM.Utils.Http (hackage)
 import HMM.Utils.Log
   ( alert,
+    debug,
     task,
   )
 import HMM.Utils.Yaml (readYaml, rewrite_)
@@ -82,10 +83,17 @@ updateConfig f m = do
   updatedCfg <- f cfg
   local (\e -> e {config = updatedCfg}) $ save >> m
 
-runConfigT :: ConfigT a -> Env -> Config -> VersionsMap -> IO (Either String a)
-runConfigT (ConfigT (ReaderT f)) env config versionsMap = do
+prefetchVersions :: ConfigT b -> ConfigT b
+prefetchVersions m = do
+  debug "Prefetching package versions from Hackage..."
+  cfg <- asks config
+  ls <- traverse fetchVersions (toList (Set.fromList $ concatMap allDeps (builds cfg)))
+  local (\e -> e {versionsMap = Map.fromList ls}) m
+
+runConfigT :: ConfigT a -> Env -> Config -> IO (Either String a)
+runConfigT (ConfigT (ReaderT f)) env config = do
   pkgs <- pkgRegistry (groups config)
-  tryJust (Just . printException) (f HCEnv {indention = 0, ..})
+  tryJust (Just . printException) (f HCEnv {indention = 0, versionsMap = Map.empty, ..})
 
 indent :: Int -> String -> String
 indent i = (replicate (i * 2) ' ' <>)
@@ -108,10 +116,6 @@ fetchVersions name = do
   vs <- hackage ["package", format name, "preferred"] >>= getField "normal-version"
   pure (name, vs)
 
-prefetchVersionsMap :: (HIO m) => Config -> m VersionsMap
-prefetchVersionsMap cfg =
-  Map.fromList <$> traverse fetchVersions (toList (Set.fromList $ concatMap allDeps (builds cfg)))
-
 computeConfigHash :: Config -> Text
 computeConfigHash cfg =
   let hashInput = T.encodeUtf8 (T.pack (show cfg))
@@ -124,10 +128,8 @@ hasHashChanged cfg (Just storedHash) = storedHash /= computeConfigHash cfg
 
 runConfig :: Bool -> ConfigT a -> Env -> Config -> IO (Either String a)
 runConfig fast m env cfg
-  | fast = runConfigT m env cfg Map.empty
-  | otherwise = do
-      deps <- prefetchVersionsMap cfg
-      runConfigT (asks config >>= check >> save >> m) env cfg deps
+  | fast = runConfigT m env cfg
+  | otherwise = runConfigT (prefetchVersions (asks config >>= check >> save >> m)) env cfg
 
 run :: (ParseResponse a) => Maybe String -> ConfigT a -> Env -> IO ()
 run label m env@Env {..} = do

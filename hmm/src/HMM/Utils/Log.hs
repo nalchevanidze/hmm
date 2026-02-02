@@ -8,6 +8,7 @@ module HMM.Utils.Log
     logFileChange,
     info,
     field,
+    debug,
   )
 where
 
@@ -41,6 +42,9 @@ logFileChange path noChange
 
 info :: (HIO m) => String -> m ()
 info = putLine . chalk Green
+
+debug :: (HIO m) => String -> m ()
+debug = putLine . chalk Cyan
 
 warn :: (HIO m) => String -> m ()
 warn = putLine . chalk Yellow
