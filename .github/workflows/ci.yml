@@ -60,7 +60,7 @@ jobs:
       - name: Binary
         uses: nalchevanidze/hmm/actions/pkg@main
         with:
-          package: hmm
+          package: haskell-monorepo-manager
           executable: hmm
           smoke_test: -v
 

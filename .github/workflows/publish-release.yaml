@@ -46,7 +46,7 @@ jobs:
       - name: Package
         uses: nalchevanidze/hmm/actions/pkg@main
         with:
-          package: hmm
+          package: haskell-monorepo-manager
           executable: hmm
           smoke_test: -v
           upload_url: ${{ needs.publish_release.outputs.upload_url }}
