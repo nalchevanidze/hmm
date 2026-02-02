@@ -12,7 +12,7 @@ module HMM.Config.ConfigT
     HCEnv (..),
     run,
     VersionMap,
-    mapConfig,
+    updateConfig,
   )
 where
 
@@ -66,11 +66,11 @@ newtype ConfigT (a :: Type) = ConfigT {_runConfigT :: ReaderT HCEnv IO a}
       MonadFail
     )
 
-mapConfig :: (Config -> ConfigT Config) -> ConfigT b -> ConfigT b
-mapConfig f' m = do
+updateConfig :: (Config -> ConfigT Config) -> ConfigT b -> ConfigT b
+updateConfig f m = do
   cfg <- asks config
-  updatedCfg <- f' cfg
-  local (\env' -> env' {config = updatedCfg}) (save >> m)
+  updatedCfg <- f cfg
+  local (\e -> e {config = updatedCfg}) $ save >> m
 
 runConfigT :: ConfigT a -> Env -> Config -> VersionsMap -> IO (Either String a)
 runConfigT (ConfigT (ReaderT f)) env config versionsMap = do
@@ -158,7 +158,7 @@ instance ParseResponse () where
   parseResponse _ = Nothing
 
 save :: ConfigT ()
-save = task "save" $ task "hmm.yaml" $ do
+save = task "save" $ task "hmm.yaml" $ do 
   cfg <- asks config
   ctx <- asks id
   let filePath = hmm $ env ctx
