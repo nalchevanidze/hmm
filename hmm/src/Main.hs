@@ -19,6 +19,7 @@ import HMM
     defaultConfig,
     exec,
   )
+import HMM.Config.ConfigT (runC)
 import Options.Applicative
   ( Parser,
     argument,
@@ -106,7 +107,7 @@ main = do
   if optVersion ops
     then putStrLn currentVersion
     else case cmd of
-      Just c -> exec c (defaultConfig {quiet = optQuiet ops})
+      Just c -> runC (exec c) (defaultConfig {quiet = optQuiet ops})
       Nothing -> do
         putStrLn "Missing: COMMAND\n\nUse --help for available commands."
         exitFailure

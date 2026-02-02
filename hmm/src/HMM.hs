@@ -15,7 +15,7 @@ where
 
 import Data.Version (showVersion)
 import HMM.Config.Config (Config (..), bumpVersion, updateDeps, updateTag)
-import HMM.Config.ConfigT (HCEnv (..), ok, run, updateConfig)
+import HMM.Config.ConfigT (ConfigT, HCEnv (..), ok, updateConfig)
 import HMM.Config.Tag (Tag (Latest))
 import HMM.Core.Bump (Bump (..))
 import HMM.Core.Env (Env (..), defaultConfig)
@@ -28,7 +28,7 @@ import HMM.Stack.StackYaml (syncStackYaml)
 import HMM.Utils.Class (Parse (..))
 import HMM.Utils.Core (Name)
 import qualified Paths_haskell_monorepo_manager as CLI
-import Relude hiding (fix)
+import Relude
 
 data Command
   = Use {tag :: Maybe Tag}
@@ -44,13 +44,13 @@ data Command
 currentVersion :: String
 currentVersion = showVersion CLI.version
 
-exec :: Command -> Env -> IO ()
-exec Publish {groupName} = run $ publishPackages groupName >> ok
-exec Version {bump = Just bump} = run $ bumpVersion bump `updateConfig` syncPackages >> ok
-exec UpdateDeps = run $ updateDeps `updateConfig` syncPackages >> ok
-exec Use {tag} = run $ updateTag tag `updateConfig` syncStackYaml >> ok
-exec Sync = run $ syncHie *> syncPackages *> syncStackYaml >> ok
-exec Version {bump = Nothing} = run $ toString . version <$> asks config
-exec Format {check} = run $ format check >> ok
-exec Lint = lintMonorepo
-exec Run {scriptName, scriptArgs} = run $ runScript scriptName scriptArgs >> ok
+exec :: Command -> ConfigT String
+exec Publish {groupName} = publishPackages groupName >> ok
+exec Version {bump = Just bump} = bumpVersion bump `updateConfig` syncPackages >> ok
+exec UpdateDeps = updateDeps `updateConfig` syncPackages >> ok
+exec Use {tag} = updateTag tag `updateConfig` syncStackYaml >> ok
+exec Sync = syncHie *> syncPackages *> syncStackYaml >> ok
+exec Version {bump = Nothing} = toString . version <$> asks config
+exec Format {check} = format check >> ok
+exec Lint = lintMonorepo >> ok
+exec Run {scriptName, scriptArgs} = runScript scriptName scriptArgs >> ok

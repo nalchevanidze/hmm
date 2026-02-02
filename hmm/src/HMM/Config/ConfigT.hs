@@ -10,7 +10,7 @@
 module HMM.Config.ConfigT
   ( ConfigT (..),
     HCEnv (..),
-    run,
+    runC,
     VersionMap,
     updateConfig,
     ok,
@@ -92,11 +92,6 @@ prefetchVersions m = do
   ls <- traverse fetchVersions unresolved
   local (\e -> e {versionsMap = Map.fromList ls}) m
 
-runConfigT :: ConfigT a -> Env -> Config -> IO (Either String a)
-runConfigT (ConfigT (ReaderT f)) env config = do
-  pkgs <- pkgRegistry (groups config)
-  tryJust (Just . printException) (f HCEnv {indention = 0, versionsMap = Map.empty, ..})
-
 indent :: Int -> String -> String
 indent i = (replicate (i * 2) ' ' <>)
 
@@ -131,8 +126,13 @@ hasHashChanged cfg (Just storedHash) = storedHash /= computeConfigHash cfg
 ok :: (Monad m) => m String
 ok = pure (chalk Green "\nOk")
 
-run :: ConfigT String -> Env -> IO ()
-run m env@Env {..} = do
+runConfigT :: ConfigT a -> Env -> Config -> IO (Either String a)
+runConfigT (ConfigT (ReaderT f)) env config = do
+  pkgs <- pkgRegistry (groups config)
+  tryJust (Just . printException) (f HCEnv {indention = 0, versionsMap = Map.empty, ..})
+
+runC :: ConfigT String -> Env -> IO ()
+runC m env@Env {..} = do
   cfg <- readYaml hmm
   storedHash <- getFileHash hmm
   let m' = if not (hasHashChanged cfg storedHash) then m else prefetchVersions (asks config >>= check >> save >> m)

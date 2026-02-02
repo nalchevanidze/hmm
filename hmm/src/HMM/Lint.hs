@@ -3,17 +3,16 @@
 
 module HMM.Lint (lintMonorepo) where
 
-import HMM.Core.Env (Env (..))
+import HMM.Config.ConfigT (ConfigT)
+import HMM.Utils.Log (task)
 import Relude
 import System.Exit (ExitCode (..))
 import System.IO (hPutStrLn)
 import System.Process (readProcess, readProcessWithExitCode)
 import qualified Prelude
 
--- | Run hlint across all Haskell source files in the monorepo using hlint executable
-lintMonorepo :: Env -> IO ()
-lintMonorepo _ = do
-  putStrLn "Running hlint on all Haskell source files..."
+lintMonorepo :: ConfigT ()
+lintMonorepo = task "Lint Haskell source files..." $ liftIO $ do
   hsFilesStr <- readProcess "find" [".", "-name", "*.hs"] ""
   let hsFiles = Prelude.lines hsFilesStr
   if null hsFiles
