@@ -13,6 +13,7 @@ module HMM.Config.ConfigT
     run,
     VersionMap,
     updateConfig,
+    ok,
   )
 where
 
@@ -127,29 +128,18 @@ hasHashChanged :: Config -> Maybe Text -> Bool
 hasHashChanged _ Nothing = True
 hasHashChanged cfg (Just storedHash) = storedHash /= computeConfigHash cfg
 
-run :: (ParseResponse a) => ConfigT a -> Env -> IO ()
+ok :: (Monad m) => m String
+ok = pure (chalk Green "\nOk")
+
+run :: ConfigT String -> Env -> IO ()
 run m env@Env {..} = do
   cfg <- readYaml hmm
   storedHash <- getFileHash hmm
   let m' = if not (hasHashChanged cfg storedHash) then m else prefetchVersions (asks config >>= check >> save >> m)
-  result <- runConfigT (m' >>= logResponse) env cfg
+  result <- runConfigT (m' >>= putLine) env cfg
   case result of
     Left x -> alert ("ERROR: " <> x) >> liftIO exitFailure
     (Right x) -> pure x
-  where
-    logResponse = putLine . fromMaybe (chalk Green "\nOk") . parseResponse
-
-class ParseResponse a where
-  parseResponse :: a -> Maybe String
-
-instance ParseResponse String where
-  parseResponse = Just
-
-instance ParseResponse Version where
-  parseResponse = Just . toString
-
-instance ParseResponse () where
-  parseResponse _ = Nothing
 
 save :: ConfigT ()
 save = task "save" $ task "hmm.yaml" $ do
