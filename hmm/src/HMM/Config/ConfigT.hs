@@ -126,20 +126,18 @@ hasHashChanged :: Config -> Maybe Text -> Bool
 hasHashChanged _ Nothing = True
 hasHashChanged cfg (Just storedHash) = storedHash /= computeConfigHash cfg
 
-runConfig :: Bool -> ConfigT a -> Env -> Config -> IO (Either String a)
-runConfig fast m env cfg
-  | fast = runConfigT m env cfg
-  | otherwise = runConfigT (prefetchVersions (asks config >>= check >> save >> m)) env cfg
-
 run :: (ParseResponse a) => Maybe String -> ConfigT a -> Env -> IO ()
 run label m env@Env {..} = do
   cfg <- readYaml hmm
   storedHash <- getFileHash hmm
-  result <- runConfig (not (hasHashChanged cfg storedHash)) (m' >>= logResponse) env cfg
+  result <- runConfigT (withCheck (not (hasHashChanged cfg storedHash)) >>= logResponse) env cfg
   case result of
     Left x -> alert ("ERROR: " <> x) >> liftIO exitFailure
     (Right x) -> pure x
   where
+    withCheck fast
+      | fast = m'
+      | otherwise = prefetchVersions (asks config >>= check >> save >> m')
     m' = maybe id task label m
     logResponse = putLine . fromMaybe (chalk Green "\nOk") . parseResponse
 
