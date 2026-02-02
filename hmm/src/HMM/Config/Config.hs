@@ -28,6 +28,7 @@ import HMM.Core.Version (Version, nextVersion)
 import HMM.Utils.Class (Check (..), HIO)
 import HMM.Utils.Core (DependencyName, Name, aesonYAMLOptions)
 import HMM.Utils.FromConf (ReadConf)
+import HMM.Utils.Log (task)
 import Relude
 
 data Config = Config
@@ -65,9 +66,11 @@ bumpVersion bump Config {..} =
    in Config {version = version', bounds = bounds', ..}
 
 updateDeps :: (HIO m, ReadConf m '[VersionsMap]) => Config -> m Config
-updateDeps Config {..} = do
+updateDeps Config {..} = task "update deps" $ do
   dependencies' <- traverseDeps updateDepBounds dependencies
   pure Config {dependencies = dependencies', ..}
 
-updateTag :: Maybe Tag -> Config -> Config
-updateTag tag config = config {currentBuild = tag <|> currentBuild config}
+updateTag :: (HIO m) => Maybe Tag -> Config -> m Config
+updateTag tag config = do
+  let tag' = tag <|> currentBuild config
+  task ("update build: " <> maybe "" show tag') $ pure $ config {currentBuild = tag'}
