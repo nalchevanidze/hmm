@@ -127,8 +127,8 @@ hasHashChanged :: Config -> Maybe Text -> Bool
 hasHashChanged _ Nothing = True
 hasHashChanged cfg (Just storedHash) = storedHash /= computeConfigHash cfg
 
-run :: (ParseResponse a) => Maybe String -> ConfigT a -> Env -> IO ()
-run label m env@Env {..} = do
+run :: (ParseResponse a) => ConfigT a -> Env -> IO ()
+run m env@Env {..} = do
   cfg <- readYaml hmm
   storedHash <- getFileHash hmm
   result <- runConfigT (withCheck (not (hasHashChanged cfg storedHash)) >>= logResponse) env cfg
@@ -137,9 +137,8 @@ run label m env@Env {..} = do
     (Right x) -> pure x
   where
     withCheck fast
-      | fast = m'
-      | otherwise = prefetchVersions (asks config >>= check >> save >> m')
-    m' = maybe id task label m
+      | fast = m
+      | otherwise = prefetchVersions (asks config >>= check >> save >> m)
     logResponse = putLine . fromMaybe (chalk Green "\nOk") . parseResponse
 
 class ParseResponse a where

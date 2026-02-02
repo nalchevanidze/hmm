@@ -1,5 +1,4 @@
 {-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module HMM
@@ -46,12 +45,12 @@ currentVersion :: String
 currentVersion = showVersion CLI.version
 
 exec :: Command -> Env -> IO ()
-exec Publish {groupName} = run Nothing (publishPackages groupName)
-exec Version {bump = Just bump} = run Nothing (bumpVersion bump `updateConfig` syncPackages)
-exec UpdateDeps = run Nothing (updateDeps `updateConfig` syncPackages)
-exec Use {tag} = run Nothing (updateTag tag `updateConfig` syncStackYaml)
-exec Sync = run Nothing (syncHie *> syncPackages *> syncStackYaml)
-exec Version {bump = Nothing} = run Nothing (version <$> asks config)
-exec Format {check} = run Nothing (format check)
+exec Publish {groupName} = run (publishPackages groupName)
+exec Version {bump = Just bump} = run (bumpVersion bump `updateConfig` syncPackages)
+exec UpdateDeps = run (updateDeps `updateConfig` syncPackages)
+exec Use {tag} = run (updateTag tag `updateConfig` syncStackYaml)
+exec Sync = run (syncHie *> syncPackages *> syncStackYaml)
+exec Version {bump = Nothing} = run (version <$> asks config)
+exec Format {check} = run (format check)
 exec Lint = lintMonorepo
-exec Run {scriptName, scriptArgs} = run Nothing (runScript scriptName scriptArgs)
+exec Run {scriptName, scriptArgs} = run (runScript scriptName scriptArgs)
