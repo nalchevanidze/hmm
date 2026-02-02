@@ -50,7 +50,7 @@ exec Publish {groupName} = run Nothing (publishPackages groupName)
 exec Version {bump = Just bump} = run (Just "version") ((pure . bumpVersion bump) `updateConfig` syncPackages)
 exec Use {tag} = run (Just "use") ((pure . updateTag tag) `updateConfig` syncStackYaml)
 exec UpdateDeps = run (Just "update deps") (updateDeps `updateConfig` syncPackages)
-exec Sync = run (Just "sync") (syncHie *> syncPackages *> syncStackYaml)
+exec Sync = run Nothing (syncHie *> syncPackages *> syncStackYaml)
 exec Version {bump = Nothing} = run Nothing (version <$> asks config)
 exec Format {check} = run Nothing (format check)
 exec Lint = lintMonorepo

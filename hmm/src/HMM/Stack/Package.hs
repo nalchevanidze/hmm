@@ -84,14 +84,11 @@ checkPackage pkgDir = do
   Package {..} <- rewritePackage pkgDir
   check CabalSrc {pkgDir, target = Cabal {..}}
 
-forPackages :: (ReadConf m ()) => (PkgDir -> m b) -> m ()
-forPackages f =
-  task "packages"
-    $ readList
-    >>= traverse_ (\p -> task (toString p) (f p))
-
 syncPackages :: (ReadConf m '[Version, BoundsByName]) => m ()
-syncPackages = forPackages checkPackage
+syncPackages =
+  task "sync packages"
+    $ readList
+    >>= traverse_ (\p -> task (toString p) (checkPackage p))
 
 publishPackages :: (ReadConf m '[Version, BoundsByName, [PkgGroup]]) => Maybe Name -> m ()
 publishPackages (Just x) = task ("Publish Group(" <> toString x <> ")") $ do

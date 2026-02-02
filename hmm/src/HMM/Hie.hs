@@ -75,7 +75,7 @@ toLib (path, Package {..}) =
     comp _ _ = []
 
 syncHie :: (ReadConf m Env) => m ()
-syncHie = task "hie" $ task "hie.yaml" $ do
+syncHie = task "sync hie" $ task "hie.yaml" $ do
   Env {..} <- readEnv id
   components <- concatMap toLib <$> resolvePackages
   rewrite_ hie (const $ pure $ packHie Components {stackYaml = stack, components})

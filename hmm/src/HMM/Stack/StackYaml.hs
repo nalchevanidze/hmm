@@ -46,7 +46,7 @@ syncStackYaml :: (ReadConf m '[Builds, Env, Tag]) => m ()
 syncStackYaml = do
   tag <- readFromConf ()
   version <- resolveVersion tag
-  task ("ghc-" <> show version <> "")
+  task ("sync stack: ghc-" <> show version <> "")
     $ task "stack.yaml"
     $ do
       p <- readEnv stack
