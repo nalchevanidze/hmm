@@ -87,7 +87,8 @@ prefetchVersions :: ConfigT b -> ConfigT b
 prefetchVersions m = do
   debug "Prefetching package versions from Hackage..."
   cfg <- asks config
-  ls <- traverse fetchVersions (toList (Set.fromList $ concatMap allDeps (builds cfg)))
+  let unresolved = toList (Set.fromList $ concatMap allDeps (builds cfg))
+  ls <- traverse fetchVersions unresolved
   local (\e -> e {versionsMap = Map.fromList ls}) m
 
 runConfigT :: ConfigT a -> Env -> Config -> IO (Either String a)
