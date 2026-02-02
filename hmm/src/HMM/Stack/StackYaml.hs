@@ -42,8 +42,6 @@ instance FromJSON Stack where
 instance ToJSON Stack where
   toJSON = genericToJSON aesonYAMLOptions
 
-
-
 syncStackYaml :: (ReadConf m '[Builds, Env, Tag]) => m ()
 syncStackYaml = do
   tag <- readFromConf ()
